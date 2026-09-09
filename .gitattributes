@@ -1,0 +1,3 @@
+
+# Unified patches intentionally contain a space on blank context lines.
+deploy/waitlist/*.patch -whitespace

@@ -12,6 +12,7 @@ from tqdm import tqdm
 
 from shelfmark.bypass import BypassCancelledError, ChallengeNotSolvedError, cookie_store
 from shelfmark.bypass.challenge import challenge_marker
+from shelfmark.bypass.waiting_room import is_aa_waiting_room
 from shelfmark.core import search_deadline
 from shelfmark.core.config import config as app_config
 from shelfmark.core.logger import setup_logger
@@ -705,6 +706,14 @@ def html_get_page(
                     continue
 
                 response.raise_for_status()
+                if (
+                    _bypass_handoff_allowed()
+                    and not _is_using_external_bypasser()
+                    and is_aa_waiting_room(current_url, response.text)
+                ):
+                    # A successful HTTP response can still need a live browser: the
+                    # queue's JavaScript must finish in the session that entered it.
+                    return _run_bypasser(current_url)
                 if success_delay > 0:
                     time.sleep(success_delay)
                 return _result(response.text, response.url)
